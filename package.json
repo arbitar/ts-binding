@@ -1,0 +1,36 @@
+{
+  "name": "@aurbi/ts-binding",
+  "version": "1.0.0",
+  "description": "bidirectionally bind serialized & simplified objects to full-featured runtime objects. kinda like a subset of zod, but it goes both ways.",
+  "license": "MIT",
+  "keywords": [
+    "definitely-typed",
+    "serialization",
+    "deserialization",
+    "binding",
+    "transformation"
+  ],
+  "author": "aurbi <npm@arbi.in>",
+  "type": "commonjs",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "clean": "rm -rf dist/*",
+    "build": "tsc",
+    "copy_defs": "cp src/*.d.ts dist/ || return 0",
+    "prepack": "npm run clean && npm run copy_defs && npm run build",
+    "test": "vitest"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.2",
+    "vitest": "^3.0.9"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arbitar/ts-binding.git"
+  },
+  "bugs": {
+    "url": "https://github.com/arbitar/ts-binding/issues"
+  },
+  "homepage": "https://github.com/arbitar/ts-binding#readme"
+}
