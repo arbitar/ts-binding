@@ -36,6 +36,7 @@ export function validated<T extends Literal>(
   }
 }
 
+/** Make a provided type expression optional */
 export function optional<T, L>(schema: Bound<T, L>): Bound<T|undefined, L|undefined> {
   return {
     transform: (object: T|undefined, s: Stack) => {
@@ -46,6 +47,24 @@ export function optional<T, L>(schema: Bound<T, L>): Bound<T|undefined, L|undefi
     },
     attributes: {
       optional: true
+    }
+  }
+}
+
+/** Extend an existing object schema with another */
+export function extendObject<BS extends {}, BD, WS extends {}, WD>(baseSchema: Bound<BS, BD>, withSchema: Bound<WS, WD>): Bound<BS&WS, BD&WD> {
+  return {
+    transform: (object: BS&WS, s: Stack) => {
+      return {
+        ...baseSchema.transform(object, s),
+        ...withSchema.transform(object, s)
+      }
+    },
+    restore: (json: BD&WD, s: Stack) => {
+      return {
+        ...baseSchema.restore(json, s),
+        ...withSchema.restore(json, s)
+      }
     }
   }
 }
@@ -141,7 +160,7 @@ export function array<T>(itemSchema: Bound<T>): Bound<Array<T>, Literal> {
  * If you're looking for an object with unknown keys, use `record`.
  * @param schemaObject Object prototype expressing the structure and expressed types therewithin
  */
-export function object<T, O extends { [key: string]: Bound<any, any> }>(
+export function object<T, O extends { [key: string]: Bound<any, any> } = { [key: string]: Bound<T, Literal> }>(
   schemaObject: { [K in keyof O as K extends keyof T ? K : never]: O[K] }
 ): Bound<T, Literal> {
   return {

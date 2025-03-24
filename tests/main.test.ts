@@ -187,71 +187,92 @@ describe('bidirectionality', () => {
       expect(transformed).toStrictEqual(test)
     })
   })
+})
 
-  describe('document', () => {
-    test('simple', () => {
-      const schema = _.document(
-        _.object({ howdy: _.string() })
-      )
+describe('document', () => {
+  test('simple', () => {
+    const schema = _.document(
+      _.object({ howdy: _.string() })
+    )
 
-      const serialized = JSON.stringify({ howdy: 'pardner' }, null, 2)
-      expect(serialized).toBeTypeOf('string')
+    const serialized = JSON.stringify({ howdy: 'pardner' }, null, 2)
+    expect(serialized).toBeTypeOf('string')
 
-      const restored = schema.restore(serialized)
-      expect(restored).toBeTypeOf('object')
+    const restored = schema.restore(serialized)
+    expect(restored).toBeTypeOf('object')
 
-      const retransformed = schema.transform(restored)
-      expect(retransformed).toBeTypeOf('string')
+    const retransformed = schema.transform(restored)
+    expect(retransformed).toBeTypeOf('string')
 
-      // does it roundtrip predictably despite prettification?
-      const rerestored = schema.restore(retransformed)
-      expect(rerestored).toStrictEqual(restored)
-    })
-
-    test('complex', () => {
-      const serializedLayer = JSON.stringify(testEntity, null, 2)
-      expect(serializedLayer).toBeTypeOf('string')
-
-      const restored = entityDocumentSchema.restore(serializedLayer)
-      expect(restored).toBeTypeOf('object')
-
-      const retransformed = entityDocumentSchema.transform(restored)
-      expect(retransformed).toBeTypeOf('string')
-
-      // does it roundtrip predictably despite prettification?
-      const rerestored = entityDocumentSchema.restore(retransformed)
-      expect(rerestored).toStrictEqual(restored)
-    })
+    // does it roundtrip predictably despite prettification?
+    const rerestored = schema.restore(retransformed)
+    expect(rerestored).toStrictEqual(restored)
   })
 
-  describe('optionals', () => {
-    test('simple', () => {
-      type Test = { howdy: string, pardner?: string }
-      const schema = _.document<Test>(
-        _.object({ howdy: _.string(), pardner: _.optional(_.string()) })
-      )
+  test('complex', () => {
+    const serializedLayer = JSON.stringify(testEntity, null, 2)
+    expect(serializedLayer).toBeTypeOf('string')
 
-      const serialized1 = JSON.stringify({ howdy: 'pardner' }, null, 2)
-      const serialized2 = JSON.stringify({ howdy: 'pardner', pardner: 'howdy' }, null, 2)
+    const restored = entityDocumentSchema.restore(serializedLayer)
+    expect(restored).toBeTypeOf('object')
 
-      const restored1 = schema.restore(serialized1)
-      expect(restored1).toBeTypeOf('object')
-      expect(restored1.pardner).toBeUndefined()
+    const retransformed = entityDocumentSchema.transform(restored)
+    expect(retransformed).toBeTypeOf('string')
 
-      const restored2 = schema.restore(serialized2)
-      expect(restored2).toBeTypeOf('object')
-      expect(restored2.pardner).toBe('howdy')
-
-      const retransformed1 = schema.transform(restored1)
-      const retransformed2 = schema.transform(restored2)
-
-      const rerestored1 = schema.restore(retransformed1)
-      expect(rerestored1).toBeTypeOf('object')
-      expect(rerestored1.pardner).toBeUndefined()
-
-      const rerestored2 = schema.restore(retransformed2)
-      expect(rerestored2).toBeTypeOf('object')
-      expect(rerestored2.pardner).toBe('howdy')
-    })
+    // does it roundtrip predictably despite prettification?
+    const rerestored = entityDocumentSchema.restore(retransformed)
+    expect(rerestored).toStrictEqual(restored)
   })
+})
+
+test('optionals', () => {
+  type Test = { howdy: string, pardner?: string }
+  const schema = _.document<Test>(
+    _.object({ howdy: _.string(), pardner: _.optional(_.string()) })
+  )
+
+  const serialized1 = JSON.stringify({ howdy: 'pardner' }, null, 2)
+  const serialized2 = JSON.stringify({ howdy: 'pardner', pardner: 'howdy' }, null, 2)
+
+  const restored1 = schema.restore(serialized1)
+  expect(restored1).toBeTypeOf('object')
+  expect(restored1.pardner).toBeUndefined()
+
+  const restored2 = schema.restore(serialized2)
+  expect(restored2).toBeTypeOf('object')
+  expect(restored2.pardner).toBe('howdy')
+
+  const retransformed1 = schema.transform(restored1)
+  const retransformed2 = schema.transform(restored2)
+
+  const rerestored1 = schema.restore(retransformed1)
+  expect(rerestored1).toBeTypeOf('object')
+  expect(rerestored1.pardner).toBeUndefined()
+
+  const rerestored2 = schema.restore(retransformed2)
+  expect(rerestored2).toBeTypeOf('object')
+  expect(rerestored2.pardner).toBe('howdy')
+})
+
+test('extension', () => {
+  type Base = { howdy: string }
+  const baseSchema = _.object<Base>({ howdy: _.string() })
+
+  type Extension = { pardner: string }
+  const extensionSchema = _.object<Extension>({ pardner: _.string() })
+
+  type Extended = Base & { pardner: string }
+  const extendedSchema = _.extendObject(
+    baseSchema,
+    extensionSchema
+  )
+
+  const documentExtendedSchema = _.document<Extended>(extendedSchema)
+
+  const serialized = JSON.stringify({ howdy: 'pardner', pardner: 'howdy' }, null, 2)
+
+  const restored = documentExtendedSchema.restore(serialized)
+  expect(restored).toBeTypeOf('object')
+  expect(restored.howdy).toBe('pardner')
+  expect(restored.pardner).toBe('howdy')
 })
