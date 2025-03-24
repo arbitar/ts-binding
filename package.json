@@ -17,7 +17,7 @@
   "scripts": {
     "clean": "rm -rf dist/*",
     "build": "tsc",
-    "copy_defs": "cp src/*.d.ts dist/ || return 0",
+    "copy_defs": "cp src/*.d.ts dist/ || echo nevermind",
     "prepack": "npm run clean && npm run copy_defs && npm run build",
     "test": "vitest"
   },
