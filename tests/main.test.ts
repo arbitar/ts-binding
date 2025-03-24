@@ -223,4 +223,35 @@ describe('bidirectionality', () => {
       expect(rerestored).toStrictEqual(restored)
     })
   })
+
+  describe('optionals', () => {
+    test('simple', () => {
+      type Test = { howdy: string, pardner?: string }
+      const schema = _.document<Test>(
+        _.object({ howdy: _.string(), pardner: _.optional(_.string()) })
+      )
+
+      const serialized1 = JSON.stringify({ howdy: 'pardner' }, null, 2)
+      const serialized2 = JSON.stringify({ howdy: 'pardner', pardner: 'howdy' }, null, 2)
+
+      const restored1 = schema.restore(serialized1)
+      expect(restored1).toBeTypeOf('object')
+      expect(restored1.pardner).toBeUndefined()
+
+      const restored2 = schema.restore(serialized2)
+      expect(restored2).toBeTypeOf('object')
+      expect(restored2.pardner).toBe('howdy')
+
+      const retransformed1 = schema.transform(restored1)
+      const retransformed2 = schema.transform(restored2)
+
+      const rerestored1 = schema.restore(retransformed1)
+      expect(rerestored1).toBeTypeOf('object')
+      expect(rerestored1.pardner).toBeUndefined()
+
+      const rerestored2 = schema.restore(retransformed2)
+      expect(rerestored2).toBeTypeOf('object')
+      expect(rerestored2.pardner).toBe('howdy')
+    })
+  })
 })

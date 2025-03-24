@@ -5,6 +5,7 @@
 export interface Bound<TSource, TTarget = Literal> {
   transform(object: TSource, stack?: Stack): TTarget
   restore(json: TTarget, stack?: Stack): TSource
+  attributes?: Record<string, any>
 }
 
 export type Literal = Primitive | PrimitiveRecord | PrimitiveArray

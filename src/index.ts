@@ -36,6 +36,20 @@ export function validated<T extends Literal>(
   }
 }
 
+export function optional<T, L>(schema: Bound<T, L>): Bound<T|undefined, L|undefined> {
+  return {
+    transform: (object: T|undefined, s: Stack) => {
+      return object === undefined ? undefined : schema.transform(object, s)
+    },
+    restore: (json: L, s: Stack) => {
+      return json === undefined ? undefined : schema.restore(json, s)
+    },
+    attributes: {
+      optional: true
+    }
+  }
+}
+
 /** expresses a literal value of any type */
 export function literal<T extends Literal>(value: T): Bound<T, T> {
   return stackwrap(validated<T>((v: any) => v === value) as unknown as Bound<T, T>, 'literal')
@@ -145,7 +159,7 @@ export function object<T, O extends { [key: string]: Bound<any, any> }>(
       }
 
       for (const key of Object.keys(schemaObject)) {
-        if (!(key in json)) {
+        if (!(key in json) && (schemaObject as any)[key]?.attributes?.optional !== true) {
           throw new TransformationError(`Missing required object key '${key}'`, s.with('object:transform'))
         }
       }
@@ -202,7 +216,7 @@ export function union<TUnion>(
  * and re-packed into a serialized string during restoration.
  * @param schema expression of serialized type
  */
-export function document<T, S>(
+export function document<T, S = string>(
   schema: Bound<T>,
   { serializer, deserializer  }: SerializationConfig<Literal, S>
     = (DefaultSerializationConfig as unknown as SerializationConfig<Literal, S>)
