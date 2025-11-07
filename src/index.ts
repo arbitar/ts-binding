@@ -3,7 +3,7 @@ import { DefaultSerializationConfig } from "./serialization"
 import { Bound, Stack, Literal, PrimitiveRecord, SerializationConfig } from "./types"
 
 export * from "./serialization"
-export { Bound, Stack } from "./types"
+export * from "./types"
 
 /** represents any type. use with care. */
 export function any(): Bound<any, any> {
