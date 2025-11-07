@@ -1,7 +1,7 @@
 {
   "name": "@aurbi/ts-binding",
   "description": "bidirectionally bind serialized & simplified objects to full-featured runtime objects. kinda like a subset of zod, but it goes both ways.",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "author": "aurbi <npm@arbi.in>",
   "type": "module",
   "main": "./dist/index.cjs",
