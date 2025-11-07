@@ -51,6 +51,21 @@ export function optional<T, L>(schema: Bound<T, L>): Bound<T|undefined, L|undefi
   }
 }
 
+/** Make a provided type expression nullable */
+export function nullable<T, L>(schema: Bound<T, L>): Bound<T|null, L|null> {
+  return {
+    transform: (object: T|null, s: Stack) => {
+      return object === null ? null : schema.transform(object, s)
+    },
+    restore: (json: L, s: Stack) => {
+      return json === null ? null : schema.restore(json, s)
+    },
+    attributes: {
+      nullable: true
+    }
+  }
+}
+
 /** Extend an existing object schema with another */
 export function extendObject<BS extends {}, BD, WS extends {}, WD>(baseSchema: Bound<BS, BD>, withSchema: Bound<WS, WD>): Bound<BS&WS, BD&WD> {
   return {
