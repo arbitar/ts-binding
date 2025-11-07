@@ -1,7 +1,24 @@
 {
   "name": "@aurbi/ts-binding",
-  "version": "1.0.2",
   "description": "bidirectionally bind serialized & simplified objects to full-featured runtime objects. kinda like a subset of zod, but it goes both ways.",
+  "version": "1.0.2",
+  "author": "aurbi <npm@arbi.in>",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
   "license": "MIT",
   "keywords": [
     "definitely-typed",
@@ -10,18 +27,15 @@
     "binding",
     "transformation"
   ],
-  "author": "aurbi <npm@arbi.in>",
-  "type": "commonjs",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
   "scripts": {
     "clean": "rm -rf dist/*",
-    "build": "tsc",
+    "build": "tsup",
     "copy_defs": "cp src/*.d.ts dist/ || echo nevermind",
     "prepack": "npm run clean && npm run copy_defs && npm run build",
     "test": "vitest"
   },
   "devDependencies": {
+    "tsup": "^8.5.0",
     "typescript": "^5.8.2",
     "vitest": "^3.0.9"
   },
