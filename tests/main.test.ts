@@ -1,10 +1,11 @@
 import * as _ from '../src'
+import { Unwrap } from '../src'
 import { test, expect, describe } from 'vitest'
 
 type FilterConfig = {
   filterData: string
 }
-const filterSchema: _.Bound<FilterConfig> = _.object({
+const filterSchema = _.object({
   filterData: _.string()
 })
 
@@ -12,7 +13,7 @@ type OneConfig = {
   oneConfig: string,
   remote: Array<{ filters: string }>
 }
-const oneConfigSchema: _.Bound<OneConfig> = _.object({
+const oneConfigSchema = _.object({
   metaConfig: _.string(),
   remote: _.array(
     _.object({ filters: _.document(filterSchema) })
@@ -20,13 +21,13 @@ const oneConfigSchema: _.Bound<OneConfig> = _.object({
 })
 
 type OneComponent = { Type: "One", Config: string }
-const oneComponentSchema: _.Bound<OneComponent> = _.object({
+const oneComponentSchema = _.object({
   Type: _.literal("One"),
   Config: _.document(oneConfigSchema)
 })
 
 type TwoComponent = { Type: "Two" }
-const twoComponentSchema: _.Bound<TwoComponent> = _.object({
+const twoComponentSchema = _.object({
   Type: _.literal("Two")
 })
 
@@ -290,7 +291,7 @@ test('extension', () => {
   type Extension = { pardner: string }
   const extensionSchema = _.object<Extension>({ pardner: _.string() })
 
-  type Extended = Base & { pardner: string }
+  type Extended = Base & Extension
   const extendedSchema = _.extendObject(
     baseSchema,
     extensionSchema
