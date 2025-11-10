@@ -9,7 +9,7 @@ export interface Bound<TSource, TTarget = Literal> {
 }
 
 export type Literal = Primitive | PrimitiveRecord | PrimitiveArray
-export type Primitive = string | number | boolean | null
+export type Primitive = string | number | boolean | null | undefined
 export type PrimitiveArray = Literal[]
 export type PrimitiveRecord = { [key: string]: Literal }
 
@@ -31,3 +31,18 @@ export interface SerializationConfig<TUnserialized extends Literal = Literal, TS
   serializer: (lit: TUnserialized) => TSerialized
   deserializer: (json: TSerialized) => TUnserialized
 }
+
+type DeepUnwrap<T> = 
+  T extends Bound<any, any>
+    ? Unwrap<T> // if it's a Bound, unwrap it
+    : T extends Array<infer U>
+      ? Array<DeepUnwrap<U>> // if it's an array, unwrap elements
+      : T extends object
+        ? { [K in keyof T]: DeepUnwrap<T[K]> } // if it's an object, unwrap properties
+        : T // primitive, return as-is
+
+/** Get a type that represents a value this schema could successfully be applied to */
+export type Unwrap<T> =
+  T extends Bound<infer U, any>
+    ? DeepUnwrap<U>
+    : T
