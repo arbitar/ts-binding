@@ -1,6 +1,6 @@
 import { stack, stackwrap, TransformationError } from "./errors"
 import { DefaultSerializationConfig } from "./serialization"
-import { Bound, Stack, Literal, PrimitiveRecord, SerializationConfig } from "./types"
+import { Bound, Stack, Literal, PrimitiveRecord, SerializationConfig, Unwrap } from "./types"
 
 export * from "./serialization"
 export * from "./types"
@@ -175,14 +175,16 @@ export function array<T>(itemSchema: Bound<T>): Bound<Array<T>, Literal> {
  * If you're looking for an object with unknown keys, use `record`.
  * @param schemaObject Object prototype expressing the structure and expressed types therewithin
  */
-export function object<T, O extends { [key: string]: Bound<any, any> } = { [key: string]: Bound<T, Literal> }>(
-  schemaObject: { [K in keyof O as K extends keyof T ? K : never]: O[K] }
-): Bound<T, Literal> {
+export function object<
+  O extends { [key: string]: any }
+>(
+  schemaObject: { [K in keyof O]: Bound<O[K], Literal> }
+): Bound<O, Literal> {
   return {
-    transform: (object: T, s: Stack = stack()) => {
+    transform: (object: { [K in keyof O]: Unwrap<O[K]> }, s: Stack = stack()) => {
       return Object.fromEntries(
-        Object.entries(schemaObject as O).map(
-          ([key, value]) => [key, value.transform(object[key as keyof T], s.with(`object:transform['${key}']`))]
+        Object.entries(schemaObject).map(
+          ([key, value]) => [key, value.transform((object as any)[key], s.with(`object:transform['${key}']`))]
         )
       )
     },
@@ -199,31 +201,36 @@ export function object<T, O extends { [key: string]: Bound<any, any> } = { [key:
       }
 
       return Object.fromEntries(
-        Object.entries(schemaObject as O).map(
-          ([key, value]) => [key, value.restore(json[key], s.with(`object:restore['${key}']`))]
+        Object.entries(schemaObject).map(
+          ([key, value]) => [key, value.restore((json as any)[key], s.with(`object:restore['${key}']`))]
         )
-      ) as T
+      ) as { [K in keyof O]: Unwrap<O[K]> }
     }
   }
 }
+
+type UnionDiscriminator<T, R> = (v: T) => Bound<R, any> | false
 
 /**
  * Expresses a discriminated union.
  * @param discriminators validation functions that either return the selected type expression or false
  */
-export function union<TUnion>(
-  ...discriminators: Array<(value: TUnion) => Bound<any, any>|false>
+export function union<
+  TUnion,
+  TDiscriminators extends readonly UnionDiscriminator<TUnion, any>[] = readonly UnionDiscriminator<TUnion, any>[]
+>(
+  ...discriminators: TDiscriminators
 ): Bound<TUnion, Literal> {
   return {
     transform: (object: TUnion, s: Stack = stack()) => {
       for (let i = 0; i < discriminators.length; i++) {
         const discriminator = discriminators[i]
-        const discriminated = discriminator(object)
+        const discriminated = discriminator(object as TUnion)
         if (discriminated === false) {
           continue
         }
 
-        return discriminated.transform(object, s.with(`union:transform[${i}]`))
+        return discriminated.transform(object as any, s.with(`union:transform[${i}]`))
       }
 
       throw new TransformationError('No matching union discriminator', s.with('union:transform'))
